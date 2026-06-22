@@ -2,19 +2,109 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <title>FloodICS - ระบบบัญชาการเหตุการณ์อัจฉริยะ</title>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   
-  body {
-    font-family: 'Prompt', sans-serif;
-    background: #0f172a;
-    overflow: hidden;
-    color: #1f2937;
+  :root {
+    --primary: #3b82f6;
+    --secondary: #8b5cf6;
+    --accent: #ec4899;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --dark: #0f172a;
+    --light: #f8fafc;
   }
   
+  body {
+    font-family: 'Prompt', sans-serif;
+    background: var(--dark);
+    overflow: hidden;
+    color: #1f2937;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  /* Loading Screen */
+  .loading-screen {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, #1e3a8a, #7c3aed);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.5s;
+  }
+  
+  .loading-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  .loading-logo {
+    font-size: 80px;
+    animation: bounce 1s infinite;
+  }
+  
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+  
+  .loading-text {
+    color: white;
+    font-size: 24px;
+    margin-top: 20px;
+    font-weight: 600;
+  }
+  
+  .loading-bar {
+    width: 200px;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    margin-top: 20px;
+    overflow: hidden;
+  }
+  
+  .loading-progress {
+    height: 100%;
+    background: white;
+    width: 0%;
+    animation: load 2s ease-out forwards;
+  }
+  
+  @keyframes load {
+    to { width: 100%; }
+  }
+  
+  /* Particle Background */
+  .particles {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  .particle {
+    position: absolute;
+    background: rgba(59, 130, 246, 0.3);
+    border-radius: 50%;
+    animation: float-particle 20s infinite;
+  }
+  
+  @keyframes float-particle {
+    0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-100vh) translateX(100px); opacity: 0; }
+  }
+  
+  /* Slide Container */
   .slide-container {
     width: 100vw;
     height: 100vh;
@@ -24,14 +114,12 @@
   
   .slide {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    padding: 40px 60px;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    padding: 60px 80px;
     opacity: 0;
-    transform: translateX(50px);
-    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(100px) scale(0.9);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
     overflow-y: auto;
     display: flex;
@@ -40,20 +128,17 @@
   
   .slide.active {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
     pointer-events: all;
   }
   
   .slide.prev {
-    transform: translateX(-50px);
+    transform: translateX(-100px) scale(0.9);
   }
   
-  /* Enhanced Slide backgrounds with images */
+  /* Slide Backgrounds with Gradients */
   .slide-cover {
-    background: linear-gradient(135deg, rgba(30,58,138,0.95) 0%, rgba(59,130,246,0.9) 50%, rgba(14,165,233,0.85) 100%), 
-                url('https://image.qwenlm.ai/public_source/c332e6bd-f8be-4827-bed1-1104fe4f7422/2070D3FD5-44C6-4CAE-A1D2-DA36227DDB6B3302.png');
-    background-size: cover;
-    background-position: center;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #0ea5e9 100%);
     color: white;
     justify-content: center;
     align-items: center;
@@ -65,9 +150,9 @@
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-image: 
-      radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0%, transparent 40%),
-      radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 40%);
+    background: 
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 50%);
     animation: shimmer 8s infinite;
   }
   
@@ -77,41 +162,35 @@
   }
   
   .slide-problem {
-    background: linear-gradient(135deg, rgba(254,242,242,0.95) 0%, rgba(254,226,226,0.9) 100%),
-                url('https://image.qwenlm.ai/public_source/c332e6bd-f8be-4827-bed1-1104fe4f7422/4070D3FD5-44C6-4CAE-A1D2-DA36227DDB6B5843.png');
-    background-size: cover;
-    background-position: center;
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
   }
   
   .slide-solution {
-    background: linear-gradient(135deg, rgba(239,246,255,0.95) 0%, rgba(219,234,254,0.9) 100%);
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   }
   
   .slide-objectives {
-    background: linear-gradient(135deg, rgba(240,253,244,0.95) 0%, rgba(220,252,231,0.9) 100%);
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   }
   
   .slide-architecture {
-    background: linear-gradient(135deg, rgba(245,243,255,0.95) 0%, rgba(237,233,254,0.9) 100%);
+    background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
   }
   
   .slide-hardware {
-    background: linear-gradient(135deg, rgba(254,252,232,0.95) 0%, rgba(254,243,199,0.9) 100%);
+    background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
   }
   
   .slide-software {
-    background: linear-gradient(135deg, rgba(236,254,255,0.95) 0%, rgba(207,250,254,0.9) 100%);
+    background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);
   }
   
   .slide-ai {
-    background: linear-gradient(135deg, rgba(253,244,255,0.95) 0%, rgba(250,232,255,0.9) 100%),
-                url('https://image.qwenlm.ai/public_source/c332e6bd-f8be-4827-bed1-1104fe4f7422/2070D3FD5-44C6-4CAE-A1D2-DA36227DDB6B6803.png');
-    background-size: cover;
-    background-position: center;
+    background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%);
   }
   
   .slide-workflow {
-    background: linear-gradient(135deg, rgba(240,249,255,0.95) 0%, rgba(224,242,254,0.9) 100%);
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   }
   
   .slide-dashboard {
@@ -120,23 +199,23 @@
   }
   
   .slide-tech {
-    background: linear-gradient(135deg, rgba(248,250,252,0.95) 0%, rgba(226,232,240,0.9) 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   }
   
   .slide-benefits {
-    background: linear-gradient(135deg, rgba(236,253,245,0.95) 0%, rgba(209,250,229,0.9) 100%);
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
   }
   
   .slide-compare {
-    background: linear-gradient(135deg, rgba(254,243,199,0.95) 0%, rgba(253,230,138,0.9) 100%);
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   }
   
   .slide-testing {
-    background: linear-gradient(135deg, rgba(237,233,254,0.95) 0%, rgba(221,214,254,0.9) 100%);
+    background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
   }
   
   .slide-conclusion {
-    background: linear-gradient(135deg, rgba(30,58,138,0.95) 0%, rgba(124,58,237,0.9) 50%, rgba(236,72,153,0.85) 100%);
+    background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 50%, #ec4899 100%);
     color: white;
     justify-content: center;
   }
@@ -144,8 +223,7 @@
   /* Typography */
   .slide-number {
     position: absolute;
-    top: 20px;
-    right: 30px;
+    top: 30px; right: 40px;
     font-size: 14px;
     opacity: 0.6;
     font-weight: 300;
@@ -155,27 +233,24 @@
   }
   
   h1 {
-    font-size: 72px;
-    font-weight: 800;
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 900;
     margin-bottom: 20px;
     line-height: 1.1;
-    letter-spacing: -1px;
-    text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    letter-spacing: -2px;
   }
   
   h2 {
-    font-size: 48px;
-    font-weight: 700;
-    margin-bottom: 30px;
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 800;
+    margin-bottom: 40px;
     color: #1e3a8a;
     display: flex;
     align-items: center;
     gap: 15px;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
   
   .slide-cover h1 {
-    font-size: 96px;
     background: linear-gradient(135deg, #fff 0%, #bfdbfe 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -184,28 +259,17 @@
     z-index: 1;
   }
   
-  .slide-conclusion h1 {
-    font-size: 72px;
-  }
-  
-  h3 {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 15px;
-    color: #1e40af;
-  }
-  
   .subtitle {
-    font-size: 28px;
+    font-size: clamp(20px, 3vw, 28px);
     font-weight: 300;
     opacity: 0.95;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
     max-width: 900px;
     line-height: 1.5;
   }
   
   .cover-subtitle {
-    font-size: 26px;
+    font-size: clamp(18px, 2.5vw, 26px);
     font-weight: 400;
     max-width: 900px;
     line-height: 1.6;
@@ -215,44 +279,12 @@
     z-index: 1;
   }
   
-  .cover-info {
-    font-size: 18px;
-    opacity: 0.9;
-    line-height: 1.8;
-    position: relative;
-    z-index: 1;
-  }
-  
-  /* Content styles */
-  .content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-  
+  /* Content Grids */
   .two-column {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 30px;
+    gap: 40px;
     align-items: center;
-  }
-  
-  .image-container {
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-    transition: transform 0.3s;
-  }
-  
-  .image-container:hover {
-    transform: scale(1.02);
-  }
-  
-  .image-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
   }
   
   .problem-grid {
@@ -271,11 +303,12 @@
     align-items: center;
     gap: 20px;
     transition: all 0.3s;
+    transform: translateY(0);
   }
   
   .problem-card:hover {
-    transform: translateY(-5px) translateX(5px);
-    box-shadow: 0 12px 40px rgba(239, 68, 68, 0.25);
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(239, 68, 68, 0.3);
   }
   
   .problem-icon {
@@ -298,7 +331,7 @@
     margin-top: 5px;
   }
   
-  /* Solution pillars */
+  /* Pillars */
   .pillars {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -320,9 +353,7 @@
   .pillar::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: 0; left: 0; right: 0;
     height: 4px;
     background: linear-gradient(90deg, #3b82f6, #8b5cf6);
     transform: scaleX(0);
@@ -334,7 +365,7 @@
   }
   
   .pillar:hover {
-    transform: translateY(-10px);
+    transform: translateY(-10px) scale(1.05);
     box-shadow: 0 15px 50px rgba(59, 130, 246, 0.3);
   }
   
@@ -375,13 +406,12 @@
   }
   
   .objective-item:hover {
-    transform: translateX(10px);
+    transform: translateX(15px) scale(1.02);
     box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
   }
   
   .obj-number {
-    width: 50px;
-    height: 50px;
+    width: 50px; height: 50px;
     background: linear-gradient(135deg, #10b981, #059669);
     color: white;
     border-radius: 50%;
@@ -418,7 +448,7 @@
   }
   
   .arch-layer:hover {
-    transform: translateX(10px);
+    transform: translateX(15px) scale(1.02);
     box-shadow: 0 12px 35px rgba(0,0,0,0.12);
   }
   
@@ -458,14 +488,7 @@
   .arch-item:hover {
     background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
-    transform: translateY(-2px);
-  }
-  
-  .arch-arrow {
-    text-align: center;
-    font-size: 28px;
-    color: #94a3b8;
-    font-weight: 700;
+    transform: translateY(-3px);
   }
   
   /* Hardware */
@@ -494,8 +517,7 @@
   .device-visual::before {
     content: '';
     position: absolute;
-    width: 250px;
-    height: 250px;
+    width: 250px; height: 250px;
     background: radial-gradient(circle, rgba(59,130,246,0.4), transparent);
     border-radius: 50%;
     animation: pulse 3s infinite;
@@ -511,6 +533,12 @@
     margin-bottom: 20px;
     position: relative;
     z-index: 1;
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
   }
   
   .device-name {
@@ -539,7 +567,7 @@
   }
   
   .spec-item:hover {
-    transform: translateX(5px);
+    transform: translateX(10px) scale(1.02);
     box-shadow: 0 6px 20px rgba(0,0,0,0.12);
   }
   
@@ -547,9 +575,7 @@
     font-size: 28px;
   }
   
-  .spec-content {
-    flex: 1;
-  }
+  .spec-content { flex: 1; }
   
   .spec-label {
     font-size: 13px;
@@ -565,7 +591,7 @@
     font-weight: 700;
   }
   
-  /* Software features */
+  /* Software Features */
   .features-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -585,9 +611,7 @@
   .feature-card::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: 0; left: 0; right: 0;
     height: 4px;
     background: linear-gradient(90deg, #06b6d4, #3b82f6);
     transform: scaleX(0);
@@ -599,7 +623,7 @@
   }
   
   .feature-card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-10px) scale(1.05);
     box-shadow: 0 12px 35px rgba(0,0,0,0.12);
   }
   
@@ -621,7 +645,7 @@
     line-height: 1.5;
   }
   
-  /* AI */
+  /* AI Cards */
   .ai-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -641,15 +665,13 @@
   .ai-card::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: 0; left: 0; right: 0;
     height: 5px;
     background: linear-gradient(90deg, #a855f7, #ec4899);
   }
   
   .ai-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-10px) scale(1.05);
     box-shadow: 0 15px 50px rgba(168, 85, 247, 0.3);
   }
   
@@ -659,8 +681,7 @@
     color: #f3e8ff;
     margin-bottom: 10px;
     position: absolute;
-    top: 15px;
-    right: 20px;
+    top: 15px; right: 20px;
   }
   
   .ai-title {
@@ -716,13 +737,12 @@
   }
   
   .workflow-step:hover {
-    transform: scale(1.05);
+    transform: scale(1.1);
     box-shadow: 0 8px 25px rgba(0,0,0,0.12);
   }
   
   .step-num {
-    width: 40px;
-    height: 40px;
+    width: 40px; height: 40px;
     background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
     border-radius: 50%;
@@ -746,7 +766,7 @@
     font-weight: 700;
   }
   
-  /* Dashboard mockup - Enhanced */
+  /* Dashboard Mockup */
   .dashboard-mockup {
     background: linear-gradient(135deg, #1e293b, #0f172a);
     border-radius: 20px;
@@ -785,8 +805,7 @@
   }
   
   .status-dot {
-    width: 12px;
-    height: 12px;
+    width: 12px; height: 12px;
     border-radius: 50%;
     background: #10b981;
     animation: blink 2s infinite;
@@ -826,11 +845,6 @@
     z-index: 10;
   }
   
-  @keyframes float {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50% { transform: translateY(-8px) scale(1.1); }
-  }
-  
   .dash-sidebar {
     display: flex;
     flex-direction: column;
@@ -863,18 +877,9 @@
     color: #f1f5f9;
   }
   
-  .stat-value.highlight { 
-    color: #10b981; 
-    text-shadow: 0 0 20px rgba(16,185,129,0.3);
-  }
-  .stat-value.warning { 
-    color: #f59e0b; 
-    text-shadow: 0 0 20px rgba(245,158,11,0.3);
-  }
-  .stat-value.danger { 
-    color: #ef4444; 
-    text-shadow: 0 0 20px rgba(239,68,68,0.3);
-  }
+  .stat-value.highlight { color: #10b981; text-shadow: 0 0 20px rgba(16,185,129,0.3); }
+  .stat-value.warning { color: #f59e0b; text-shadow: 0 0 20px rgba(245,158,11,0.3); }
+  .stat-value.danger { color: #ef4444; text-shadow: 0 0 20px rgba(239,68,68,0.3); }
   
   .dash-ai-box {
     background: linear-gradient(135deg, #7c3aed, #ec4899);
@@ -901,7 +906,7 @@
     color: rgba(255,255,255,0.95);
   }
   
-  /* Tech stack */
+  /* Tech Stack */
   .tech-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -917,7 +922,7 @@
   }
   
   .tech-category:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px) scale(1.02);
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   }
   
@@ -953,7 +958,7 @@
   .tech-badge:hover {
     background: linear-gradient(135deg, #3b82f6, #1e40af);
     color: white;
-    transform: scale(1.05);
+    transform: scale(1.1);
     border-color: #1e40af;
   }
   
@@ -980,10 +985,8 @@
   .benefit-card::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 6px;
-    height: 100%;
+    top: 0; left: 0;
+    width: 6px; height: 100%;
     background: linear-gradient(180deg, #10b981, #059669);
   }
   
@@ -997,9 +1000,7 @@
     flex-shrink: 0;
   }
   
-  .benefit-content {
-    flex: 1;
-  }
+  .benefit-content { flex: 1; }
   
   .benefit-title {
     font-size: 20px;
@@ -1022,7 +1023,7 @@
     line-height: 1.4;
   }
   
-  /* Comparison table */
+  /* Comparison Table */
   .compare-table {
     background: white;
     border-radius: 20px;
@@ -1076,7 +1077,7 @@
     font-weight: 600;
   }
   
-  /* Testing */
+  /* Testing Timeline */
   .testing-timeline {
     display: flex;
     flex-direction: column;
@@ -1087,9 +1088,7 @@
   .testing-timeline::before {
     content: '';
     position: absolute;
-    left: 35px;
-    top: 40px;
-    bottom: 40px;
+    left: 35px; top: 40px; bottom: 40px;
     width: 4px;
     background: linear-gradient(180deg, #a855f7, #ec4899);
     border-radius: 2px;
@@ -1105,17 +1104,15 @@
   }
   
   .test-phase:hover {
-    transform: translateX(10px);
+    transform: translateX(15px) scale(1.02);
     box-shadow: 0 12px 40px rgba(168, 85, 247, 0.2);
   }
   
   .test-phase::before {
     content: '';
     position: absolute;
-    left: 25px;
-    top: 35px;
-    width: 28px;
-    height: 28px;
+    left: 25px; top: 35px;
+    width: 28px; height: 28px;
     background: linear-gradient(135deg, #a855f7, #ec4899);
     border-radius: 50%;
     border: 4px solid white;
@@ -1153,7 +1150,7 @@
   }
   
   .conclusion-tagline {
-    font-size: 36px;
+    font-size: clamp(24px, 3vw, 36px);
     font-weight: 300;
     margin-bottom: 40px;
     opacity: 0.95;
@@ -1161,7 +1158,7 @@
   }
   
   .conclusion-equation {
-    font-size: 48px;
+    font-size: clamp(32px, 5vw, 48px);
     font-weight: 800;
     margin-bottom: 50px;
     display: flex;
@@ -1206,11 +1203,11 @@
   
   .future-item:hover {
     background: rgba(255,255,255,0.25);
-    transform: translateY(-3px);
+    transform: translateY(-5px) scale(1.05);
   }
   
   .thank-you {
-    font-size: 56px;
+    font-size: clamp(40px, 6vw, 56px);
     font-weight: 700;
     margin-top: 60px;
     background: linear-gradient(135deg, #fbbf24, #f472b6);
@@ -1225,7 +1222,7 @@
     50% { filter: drop-shadow(0 0 30px rgba(244,114,182,0.8)); }
   }
   
-  /* Navigation */
+  /* Navigation Controls */
   .nav-controls {
     position: fixed;
     bottom: 30px;
@@ -1244,8 +1241,7 @@
   }
   
   .nav-btn {
-    width: 48px;
-    height: 48px;
+    width: 48px; height: 48px;
     border-radius: 50%;
     background: rgba(255,255,255,0.1);
     border: 2px solid rgba(255,255,255,0.2);
@@ -1279,8 +1275,7 @@
   
   .progress-bar {
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     height: 5px;
     background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
     transition: width 0.4s ease;
@@ -1303,8 +1298,7 @@
   }
   
   .indicator-dot {
-    width: 10px;
-    height: 10px;
+    width: 10px; height: 10px;
     border-radius: 50%;
     background: rgba(255,255,255,0.3);
     cursor: pointer;
@@ -1321,7 +1315,7 @@
     background: rgba(255,255,255,0.8);
   }
   
-  /* Animation for content */
+  /* Animations */
   .slide.active .animate-in {
     animation: slideUp 0.6s ease forwards;
   }
@@ -1347,19 +1341,113 @@
   .delay-4 { animation-delay: 0.4s !important; }
   .delay-5 { animation-delay: 0.5s !important; }
   
+  /* Responsive Design */
+  @media (max-width: 1200px) {
+    .slide { padding: 50px 60px; }
+    .pillars { grid-template-columns: repeat(2, 1fr); }
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .ai-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  
   @media (max-width: 768px) {
     .slide { padding: 30px 20px; }
     h1 { font-size: 48px; }
     h2 { font-size: 32px; }
-    .slide-cover h1 { font-size: 56px; }
-    .problem-grid, .pillars, .ai-grid, .features-grid, .tech-grid, .benefits-grid,
-    .two-column, .hardware-layout, .dash-body {
+    
+    .two-column,
+    .problem-grid,
+    .pillars,
+    .ai-grid,
+    .features-grid,
+    .tech-grid,
+    .benefits-grid,
+    .hardware-layout,
+    .dash-body {
       grid-template-columns: 1fr;
+    }
+    
+    .workflow-row {
+      flex-direction: column;
+    }
+    
+    .workflow-arrow {
+      transform: rotate(90deg);
+    }
+    
+    .compare-row {
+      grid-template-columns: 1fr;
+    }
+    
+    .compare-cell.label {
+      border-right: none;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .nav-controls {
+      padding: 10px 20px;
+      gap: 15px;
+    }
+    
+    .nav-btn {
+      width: 40px;
+      height: 40px;
+      font-size: 18px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .slide { padding: 20px 15px; }
+    h1 { font-size: 36px; }
+    h2 { font-size: 24px; }
+    
+    .pillar, .feature-card, .ai-card, .benefit-card {
+      padding: 20px;
+    }
+    
+    .device-visual {
+      min-height: 300px;
+      padding: 20px;
+    }
+    
+    .device-icon {
+      font-size: 60px;
+    }
+    
+    .device-name {
+      font-size: 24px;
+    }
+  }
+  
+  /* Print Styles */
+  @media print {
+    .slide {
+      position: relative;
+      opacity: 1;
+      transform: none;
+      page-break-after: always;
+    }
+    
+    .nav-controls,
+    .progress-bar,
+    .slide-indicator {
+      display: none;
     }
   }
 </style>
 </head>
 <body>
+
+<!-- Loading Screen -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-logo">🌊</div>
+  <div class="loading-text">FloodICS กำลังโหลด...</div>
+  <div class="loading-bar">
+    <div class="loading-progress"></div>
+  </div>
+</div>
+
+<!-- Particle Background -->
+<div class="particles" id="particles"></div>
 
 <div class="progress-bar" id="progressBar"></div>
 <div class="slide-indicator" id="slideIndicator"></div>
@@ -1381,7 +1469,7 @@
         <div style="font-size: 20px; opacity: 0.9; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
           <span>🏛️ ICS</span>
           <span>+</span>
-          <span>📡 IoT</span>
+          <span> IoT</span>
           <span>+</span>
           <span>🧠 AI</span>
           <span>+</span>
@@ -1396,7 +1484,7 @@
     <div class="slide-number">02 / 15</div>
     <h2 class="animate-in">🚨 ปัญหาการจัดการอุทกภัยในปัจจุบัน</h2>
     <div class="two-column">
-      <div class="content">
+      <div>
         <div class="problem-grid">
           <div class="problem-card animate-in delay-1">
             <div class="problem-icon">📞</div>
@@ -1407,7 +1495,7 @@
             <div class="problem-text">การทำงานซ้ำซ้อน<small>ระหว่างหน่วยงาน</small></div>
           </div>
           <div class="problem-card animate-in delay-3">
-            <div class="problem-icon">📝</div>
+            <div class="problem-icon"></div>
             <div class="problem-text">สูญเสียข้อมูล<small>ระหว่างการเปลี่ยนเวร</small></div>
           </div>
           <div class="problem-card animate-in delay-4">
@@ -1420,9 +1508,6 @@
             💔 ผลลัพธ์: ความสูญเสียที่เพิ่มขึ้นทั้งชีวิตและทรัพย์สิน
           </div>
         </div>
-      </div>
-      <div class="image-container animate-in delay-3">
-        <img src="https://image.qwenlm.ai/public_source/c332e6bd-f8be-4827-bed1-1104fe4f7422/c332e6bd-f8be-4827-bed1-1104fe4f7422.png" alt="Flood Rescue">
       </div>
     </div>
   </div>
@@ -1515,7 +1600,7 @@
           <div class="arch-item">REST API</div>
         </div>
       </div>
-      <div class="arch-arrow animate-in delay-4">⬇️ WebSocket / REST API ⬇️</div>
+      <div class="arch-arrow animate-in delay-4">️ WebSocket / REST API ⬇️</div>
       <div class="arch-layer presentation animate-in delay-5">
         <div class="arch-layer-title">💻 Presentation Layer</div>
         <div class="arch-items">
@@ -1624,7 +1709,7 @@
         <div class="feature-desc">ระบบช่วยตัดสินใจด้วยปัญญาประดิษฐ์</div>
       </div>
       <div class="feature-card animate-in delay-4" style="grid-column: 2;">
-        <div class="feature-icon">📊</div>
+        <div class="feature-icon"></div>
         <div class="feature-title">Digital Twin Dashboard</div>
         <div class="feature-desc">ภาพรวมสถานการณ์แบบ Digital Twin 3D</div>
       </div>
@@ -1678,7 +1763,7 @@
         <div class="workflow-arrow">→</div>
         <div class="workflow-step">
           <div class="step-num">2</div>
-          <div class="step-text">🧠 AI วิเคราะห์</div>
+          <div class="step-text"> AI วิเคราะห์</div>
         </div>
         <div class="workflow-arrow">→</div>
         <div class="workflow-step">
@@ -1730,8 +1815,8 @@
           <div class="map-marker" style="top: 20%; left: 30%;">🚤</div>
           <div class="map-marker" style="top: 50%; left: 60%; animation-delay: 0.5s;">🚑</div>
           <div class="map-marker" style="top: 70%; left: 25%; animation-delay: 1s;">⚠️</div>
-          <div class="map-marker" style="top: 35%; left: 75%; animation-delay: 1.5s;">🏠</div>
-          <div class="map-marker" style="top: 60%; left: 45%; animation-delay: 2s;">🚤</div>
+          <div class="map-marker" style="top: 35%; left: 75%; animation-delay: 1.5s;"></div>
+          <div class="map-marker" style="top: 60%; left: 45%; animation-delay: 2s;"></div>
           <div style="position: absolute; bottom: 20px; left: 20px; font-size: 13px; color: #94a3b8; background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 8px;">
             📍 Shared Operational Map - เขตน้ำท่วม
           </div>
@@ -1871,8 +1956,8 @@
       <div style="font-size: 24px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
         <span>🌲 ไฟป่า</span>
         <span>🌍 แผ่นดินไหว</span>
-        <span>🚗 อุบัติเหตุหมู่</span>
-        <span> อัคคีภัย</span>
+        <span> อุบัติเหตุหมู่</span>
+        <span>🔥 อัคคีภัย</span>
       </div>
     </div>
   </div>
@@ -1913,7 +1998,7 @@
         <div class="compare-cell new">✅ Digital Twin</div>
       </div>
       <div class="compare-row">
-        <div class="compare-cell label">📡 เมื่อเน็ตล่ม</div>
+        <div class="compare-cell label"> เมื่อเน็ตล่ม</div>
         <div class="compare-cell old">ใช้งานไม่ได้</div>
         <div class="compare-cell new">✅ LoRa + Offline</div>
       </div>
@@ -1941,7 +2026,7 @@
       </div>
       <div class="test-phase animate-in delay-3">
         <div class="test-phase-num">Phase 3</div>
-        <div class="test-phase-title">🌊 Pilot Deployment</div>
+        <div class="test-phase-title"> Pilot Deployment</div>
         <div class="test-phase-desc">
           นำร่องในพื้นที่เสี่ยงจริง • วัดผลเปรียบเทียบกับระบบเดิม • ประเมินผลกระทบ • ปรับปรุงตาม Feedback • ขยายผล
         </div>
@@ -1960,20 +2045,20 @@
         เพื่อช่วยชีวิตและลดความสูญเสีย
       </div>
       <div class="conclusion-equation animate-in delay-3">
-        <div class="eq-item">🏛️ ICS</div>
+        <div class="eq-item">️ ICS</div>
         <div>+</div>
         <div class="eq-item">📡 IoT</div>
         <div>+</div>
         <div class="eq-item">🧠 AI</div>
         <div>=</div>
-        <div class="eq-item" style="background: rgba(255,255,255,0.3);">💚 ช่วยชีวิต</div>
+        <div class="eq-item" style="background: rgba(255,255,255,0.3);"> ช่วยชีวิต</div>
       </div>
       <div class="future-list animate-in delay-4">
-        <div class="future-item">🚁 Drone Survey</div>
+        <div class="future-item"> Drone Survey</div>
         <div class="future-item">📹 Computer Vision</div>
         <div class="future-item">📱 Mobile App</div>
         <div class="future-item">🌍 ขยายสู่ภัยพิบัติอื่น</div>
-        <div class="future-item">🤖 Machine Learning</div>
+        <div class="future-item"> Machine Learning</div>
       </div>
       <div class="thank-you animate-in delay-5">
         ❓ ขอบคุณครับ มีคำถามไหมครับ?
@@ -1990,6 +2075,30 @@
 </div>
 
 <script>
+  // Loading Screen
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('loadingScreen').classList.add('hidden');
+    }, 2000);
+  });
+  
+  // Create Particles
+  function createParticles() {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 30; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.width = Math.random() * 10 + 5 + 'px';
+      particle.style.height = particle.style.width;
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDuration = Math.random() * 20 + 10 + 's';
+      particle.style.animationDelay = Math.random() * 5 + 's';
+      container.appendChild(particle);
+    }
+  }
+  createParticles();
+  
+  // Slide Navigation
   let currentSlide = 0;
   const slides = document.querySelectorAll('.slide');
   const totalSlides = slides.length;
@@ -2041,6 +2150,7 @@
     updateSlide();
   }
   
+  // Keyboard Navigation
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
       e.preventDefault();
@@ -2059,6 +2169,7 @@
     }
   });
   
+  // Touch/Swipe Support
   let touchStartX = 0;
   let touchEndX = 0;
   
@@ -2082,6 +2193,7 @@
     }
   }
   
+  // Fullscreen
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
@@ -2090,6 +2202,7 @@
     }
   }
   
+  // Mouse Wheel Navigation
   let wheelTimeout;
   document.addEventListener('wheel', (e) => {
     clearTimeout(wheelTimeout);
@@ -2102,13 +2215,13 @@
     }, 100);
   }, { passive: true });
   
+  // Initialize
   updateSlide();
   
-  console.log('%c🌊 FloodICS Presentation', 'font-size: 24px; font-weight: bold; color: #3b82f6;');
+  console.log('%c🌊 FloodICS Presentation - Ultimate Version', 'font-size: 24px; font-weight: bold; color: #3b82f6;');
   console.log('%cกด F เพื่อ Fullscreen | ← → เพื่อเลื่อนสไลด์', 'color: #64748b;');
 </script>
 
 </body>
 </html>
-
 
